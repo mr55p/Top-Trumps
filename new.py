@@ -9,10 +9,10 @@ class FM():
 		self.ccd = ()
 
 		self.pack = []
-		self.currentFile = ''
+		self.currentFile = 'None'
 
 	def _update_glob(self):
-		cwd = os.getcwd
+		cwd = os.getcwd()
 		csv = []
 		dire = []
 		
@@ -27,7 +27,7 @@ class FM():
 		self.ccd = (cwd,csv,dire)
 	
 	def _clean(self, raw):
-		a = raw.splitLines()
+		a = raw.splitlines()
 		b = [i.split(',') for i in a]
 		return b
 
@@ -45,19 +45,61 @@ class FM():
 			raw = f.read()
 
 		self.currentPack = self._clean(raw)
-		self.fileName = fileName
+		self.currentFile = fileName
+		print('Success')
+		time.sleep(2)
 		return 0
 
-	def FileManager(self):
+	def _newFile(self):
+		return 0
 
+	def _newPath(self):
+		print('Please enter the subdirectory name')
+		path = input('>>> ')
+		if path not in self.ccd[2]:
+			print('invalid')
+			time.sleep(2)
+			return 1
+		try:
+			os.chdir(path)
+		except IOError:
+			print('Invalid Path/Directory')
+			time.sleep(1)
+			return 1
+		finally:
+			return 0
+			
+	def _newDir(self):
+		print('What dir name?')
+		name = input('>>> ')
+		try:
+			os.mkdir(name)
+		except IOError:
+			print('Unsuccesfull. Please try a different name or check the permissions of the directory.')
+			time.sleep(2)
+			return 1
+		else:
+			return 0
+
+	def _viewPack(self):
+		pass
+
+	def _exit(self):
+		return 2
+
+	def FileManager(self):
+		
 		opt = {
-				'(R)ead File': self._readFile, 
-				'(C)reate new file': self._newFile,
-				'Change the (P)ath': self._newPath,
-				'Create a new (S)ubdirectiry': self._newDir,
-				'(V)iew your current pack': self._viewPack,
-				'(E)xit': self._exit()
+				0: self._readFile, 
+				1: self._newFile,
+				2: self._newPath,
+				3: self._newDir,
+				4: self._viewPack,
+				5: self._exit
 		}
+
+		optText = ['Read File', 'Create new file','Change the Path', 'Create a new Subdirectiry', 'View your current pack', 'Exit']
+		
 		while True:
 			self._update_glob()
 			cwd = self.ccd[0]
@@ -69,18 +111,30 @@ class FM():
 			a = lambda:  print('{0}\n{1}\n{0}'.format(ca('','#'),ca('| File Manager |','#')))
 			b = lambda li : '\n##\t'.join(li) 
 			a()
-			print('## Current Directory: {0}\n##\n## Sub directories:\n##\t{1}\n##\n## CSV Files:\n##\t{2}'.format(cwd, b(dire), b(csv)))
+			print('## Current Directory: {0}\n##\n## Current Pack: {3}\n##\n## Sub directories:\n##\t{1}\n##\n## CSV Files:\n##\t{2}'.format(cwd, b(dire), b(csv),self.currentFile))
 			print(ca('','#'))
-			print(', '.join([i for i,j in opt.items()]))
-			arg = input('\n>>> ')
-			func = opt.get(arg, None)
 			
-			if not func:
-				print('Invalid option')
+			for i in range(len(optText)):
+				print('{0}) {1}'.format(i, optText[i]))
+			
+			arg = input('\n>>> ')
+			try:
+				arg = int(arg)
+			except ValueError:
+				print('Bad Opetion')
+				return 1
+			func = opt.get(arg, None)
+			#print('Invalid option')
+			#time.sleep(1)
+			####s
+			status = None
+			try:
+				status = func()
+			except TypeError:
+				print('invalid')
 				time.sleep(1)
 				pass
 			
-			status = func()
 			if status == 2:
 				return 0
 			

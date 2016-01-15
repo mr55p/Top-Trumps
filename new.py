@@ -142,6 +142,10 @@ class FM():
 			
 		return 0
 
+class cardViewer():
+	def __init__(data, fileName):
+		self.data = data
+		self.fileName = fileName
 
 
 if __name__ == '__main__':
